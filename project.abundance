@@ -1,13 +1,87 @@
 {
-    "atomType": "Molecule",
-    "x": 0,
-    "y": 0,
-    "uniqueID": "id-22894",
-    "name": "util.FaceDifference",
-    "topLevel": true,
-    "allAtoms": [],
-    "allConnectors": [],
-    "unitsKey": "Unitless",
-    "fileTypeVersion": 1,
-    "filetypeVersion": 1
+  "atomType": "Molecule",
+  "x": 0,
+  "y": 0,
+  "uniqueID": "id-22894",
+  "name": "util.FaceDifference",
+  "ioValues": [
+    {
+      "name": "faces",
+      "ioValue": "__GEOMETRY_INPUT__"
+    },
+    {
+      "name": "cuttingSolid",
+      "ioValue": "__GEOMETRY_INPUT__"
+    }
+  ],
+  "topLevel": true,
+  "allAtoms": [
+    {
+      "atomType": "Output",
+      "x": 0.98,
+      "y": 0.5,
+      "uniqueID": "id-22895",
+      "ioValues": [
+        {
+          "name": "number or geometry",
+          "ioValue": "__GEOMETRY_INPUT__"
+        }
+      ]
+    },
+    {
+      "atomType": "Code",
+      "x": 0.3079427083333333,
+      "y": 0.5771428571428572,
+      "uniqueID": "id-22897",
+      "ioValues": [
+        {
+          "name": "faces",
+          "ioValue": "__GEOMETRY_INPUT__"
+        },
+        {
+          "name": "cuttingSolid",
+          "ioValue": "__GEOMETRY_INPUT__"
+        }
+      ],
+      "interpreterVersion": 1,
+      "code": "function run(faces: Assembly, cuttingSolid: Assembly) {\n  const cutters: replicad.Shape3D[] = []\n  cuttingSolid.onLeafs((leaf) => {\n    if (leaf.is3D() && replicad.isShape3D(leaf.geometry)) {\n      cutters.push(leaf.geometry)\n    } else {\n      throw Error(\"cuttingSolid must be a 3d shape. was: \" + leaf)\n    }\n    return leaf;\n  })\n\n  return faces.onLeafs((leaf) => {\n    if (leaf.geometry instanceof replicad.Face) {\n      const norm = leaf.geometry.normalAt([0.5, 0.5]).normalize().multiply(-1)\n      let solid = replicad.basicFaceExtrusion(leaf.geometry, norm)\n      for (const cutter of cutters) {\n        solid = solid.cut(cutter)\n      }\n\n      // select trimmed face\n      for (const candidateResult of solid.faces) {\n        const point = candidateResult.pointOnSurface(0.5, 0.5)\n        const found = new replicad.FaceFinder().containsPoint(point).find(leaf.geometry)\n        console.log(found)\n        if (found.length > 0) {\n          // A central point of the candidate face is on the input face. This should only happen for one candidate\n          leaf.geometry = candidateResult\n          return leaf;\n        }\n      }\n      console.warn(\"Didn't find a face in the result which corresponds to our input face\")\n      return undefined\n    } else {\n      throw new Error(\"Faces to trim were not of type face \" + leaf)\n    }\n  })\n}",
+      "compiledCode": "\"use strict\";\nfunction run(faces, cuttingSolid) {\n    const cutters = [];\n    cuttingSolid.onLeafs((leaf) => {\n        if (leaf.is3D() && replicad.isShape3D(leaf.geometry)) {\n            cutters.push(leaf.geometry);\n        }\n        else {\n            throw Error(\"cuttingSolid must be a 3d shape. was: \" + leaf);\n        }\n        return leaf;\n    });\n    return faces.onLeafs((leaf) => {\n        if (leaf.geometry instanceof replicad.Face) {\n            const norm = leaf.geometry.normalAt([0.5, 0.5]).normalize().multiply(-1);\n            let solid = replicad.basicFaceExtrusion(leaf.geometry, norm);\n            for (const cutter of cutters) {\n                solid = solid.cut(cutter);\n            }\n            // select trimmed face\n            for (const candidateResult of solid.faces) {\n                const point = candidateResult.pointOnSurface(0.5, 0.5);\n                const found = new replicad.FaceFinder().containsPoint(point).find(leaf.geometry);\n                console.log(found);\n                if (found.length > 0) {\n                    // A central point of the candidate face is on the input face. This should only happen for one candidate\n                    leaf.geometry = candidateResult;\n                    return leaf;\n                }\n            }\n            console.warn(\"Didn't find a face in the result which corresponds to our input face\");\n            return undefined;\n        }\n        else {\n            throw new Error(\"Faces to trim were not of type face \" + leaf);\n        }\n    });\n}\n"
+    },
+    {
+      "atomType": "Input",
+      "x": 0.025384615384615384,
+      "y": 0.3171428571428571,
+      "uniqueID": "id-22917",
+      "name": "faces",
+      "type": "geometry"
+    },
+    {
+      "atomType": "Input",
+      "x": 0.025384615384615384,
+      "y": 0.5800000000000001,
+      "uniqueID": "id-22920",
+      "name": "cuttingSolid",
+      "type": "geometry"
+    }
+  ],
+  "allConnectors": [
+    {
+      "ap2Name": "number or geometry",
+      "ap1ID": "id-22897",
+      "ap2ID": "id-22895"
+    },
+    {
+      "ap2Name": "faces",
+      "ap1ID": "id-22917",
+      "ap2ID": "id-22897"
+    },
+    {
+      "ap2Name": "cuttingSolid",
+      "ap1ID": "id-22920",
+      "ap2ID": "id-22897"
+    }
+  ],
+  "unitsKey": "Unitless",
+  "fileTypeVersion": 1,
+  "filetypeVersion": 1
 }
